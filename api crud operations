@@ -1,0 +1,116 @@
+  /*********************start Route***********************/
+  
+  namespace :api do
+    namespace :v1 do
+      # resources :testing
+      get 'employee_show', to: "testing#employee_show"
+      post 'employee_create', to: "testing#employee_create"
+      post 'employee_edit/:id', to: "testing#employee_edit"
+      get 'employee_destroy/:id', to: "testing#employee_destroy"
+      post 'employee_login', to: "testing#employee_login"
+      post 'my_profile', to: "testing#employee_profile"
+      get 'employee_logout', to: "testing#employee_logout"
+    end
+  end
+    /*********************End Route***********************/
+  
+  
+  
+  /*********************start controller******************/
+  class Api::V1::TestingController < ApplicationController
+  skip_before_action :verify_authenticity_token
+  before_action  :current_user
+  #before_action :employee_login, :only => [:employee_show,:employee_create,:employee_destroy,:employee_edit] 
+  
+  def employee_show
+    employee = Employee.all
+    render json: employee
+  end
+
+  def employee_create
+    employee = Employee.create(employee_params)
+    if employee
+      render json: { 'msg' => 'Record has been created successfully', 'code'=> 200 }
+    else
+      render json: { 'msg' => 'Some error while creating', 'code'=> 401 }
+    end
+  end
+ 
+  def employee_edit
+    employee = Employee.find(params.delete(:id))
+    if employee.update(employee_params)
+    render json: { 'msg' => 'Record has been updating successfully', 'code'=> 200 }
+  else
+    render json: { 'msg' => 'Some error while updating','code' => 401 }
+  end
+  end
+
+  def employee_destroy
+    if employee = Employee.find(params[:id])
+    employee.destroy
+    render json: { 'msg' => 'Record has been deleted successfully', 'code'=> 200 }
+  else
+    render json: { 'msg' => 'Some error while deleting', 'code'=> 401 }
+    end
+  end
+
+  def logout
+   employee = Employee.find_by_access_token(params[:access_token])
+    if employee      
+      employee.update(access_token: SecureRandom.hex)
+      employee.where(email: params[:email],password_digest: params[:password_digest]).delete_all
+      render json: {  'message' => 'Logout successfully', 'code' => 200}
+    else
+      render json: { 'message' => 'Error while logout', 'code' => 401 }
+    end
+  end
+
+  def employee_login
+    user = Employee.find_by(email: params[:email])
+    if user.present?
+      user_match = user.authenticate(params[:password])  
+      if user_match.present?
+        user.update(access_token: SecureRandom.hex)
+        code = 401
+        msg = 'Login successfully'
+      else
+        code = 401
+        msg = 'Email & Password Mismatch'
+      end
+    end
+    render json: { 'msg' => msg, 'code' => code, 'data' => @current_user }
+  end
+
+  def employee_profile
+    if @current_user.present? 
+      render json: { 'code' => 200, 'msg' => 'successfully', 'data' => @current_user }
+    else
+      render json: { 'code' => 401, 'msg' => 'Please login first', 'data' => {} }
+    end  
+  end
+
+ private 
+
+  def employee_params
+    params.permit(:name, :age, :address, :phone, :gender, :password, :email)
+  end
+end
+
+  /*********************End controller*******************/
+  
+  /*********************Start Application controller************************/
+  
+  class ApplicationController < ActionController::Base
+
+	def current_user
+	  @current_user = Employee.where(access_token:params[:access_token]).first	
+	end
+	
+end
+
+    /*********************End Application controller************************/
+  
+  
+  
+    /*********************Hit on Api*******************/
+    http://localhost:3000/api/v1/index

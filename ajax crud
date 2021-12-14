@@ -1,0 +1,373 @@
+  /********************Start Route**********************/
+  # get 'get_employee_list' => 'web/welcome#employee_list'
+  get 'employee_list' => 'employee#index'
+  get 'get_employee_list' => 'employee#get_employee_list'
+  get 'delete_employee' => 'employee#destroy'
+  post 'save_employee_details' => 'employee#save_employee_details'
+  #post 'country_Id' => 'employee#save_employee_details'
+  get 'state_Id' => 'employee#find_state'
+  get 'city_Id' => 'employee#find_city'
+  get 'edit_employee' => 'employee#edit'
+  post 'update_employee' => 'employee#update'
+      resources :employees
+
+end
+  /*********************End Route************************/
+  
+  
+  /*********************start view************************/
+  <div class="content-wrapper">
+    <section class="content-header">
+      <h1>
+        <% if @current_web_user.user_type.to_i == 3 %>
+        Tutor Dashboard
+        <% elsif @current_web_user.user_type.to_i == 2 %>
+        Student Dashboard
+        <% else %>
+        Parent Dashboard
+        <% end %>
+        <small>Version 1.1.0</small>
+      </h1>
+      <ol class="breadcrumb">
+        <li><a href="#"><i class="fa fa-dashboard"></i> Home</a></li>
+        <li class="active">Dashboard</li>
+      </ol>
+    </section>
+    <section class="content">
+      <div class="row">
+        <div class="col-md-12"  >
+           <%= @user %>
+          <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal" data-whatever="@getbootstrap">Add new Employee</button>
+
+
+          
+
+          <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="exampleModalLabel">Please enter Employee name here :</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="form-group">
+                      <label for="recipient-name" class="col-form-label">Name : </label>
+                      <input type="text" class="form-control" id="name" name="name">
+                      <input type="hidden" id="emp_id" name="id" value="">
+                    </div>
+                    <div>
+
+                      <label for="Country">Country:</label>
+                      <select name="country"  id="country_Id">
+                        <option value="">Select</option>
+                        <% @countries.each do |country| %>
+                        <option  value="<%= country.id %>"><%= country.name %></option>
+                        <% end %>
+                      </select>
+                      <label for="State">State:</label>
+                      <select name="state"  id="state_Id">
+                      <option value="">Select</option>
+                      <% @states.each do |state| %>
+                        <option value="<%= state.id %>"><%= state.name %></option>
+                        <% end %>
+                        </select>
+                      <label for="City">City:</label>
+                      <select name="city"  id="city_Id">
+                      <option value="">Select</option>
+                      <% @cities.each do |city| %>
+                      <option value="<%= city.id %>"><%= city.name %></option>
+                       <% end %>
+                      </select>
+                      </div><br>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="save_employee_details">Save</button></div>
+                  </div>
+                </div>
+              </div>
+                  <input type="button"  class="btn btn-primary pull-right" id="get_employee_list" value="Click to show the Employee list">
+                </div>
+              </div>
+              <br>
+              <div class="box">
+                <div class="box-header">
+                  <h3 class="box-title">Employee list</h3>
+                </div>
+                <div class="box-body">
+                  <table id="example" class="table table-bordered table-striped">
+                    <thead>
+                      <tr>
+                        <th>Ser no.</th>
+                        <th>Name</th>
+                        <th>Country</th>
+                        <th>State</th>
+                        <th>City</th>
+                        <th>Action</th>
+                      </tr>
+                      
+                    </thead>
+                    <tbody id="emp_table">
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </section>
+          </div>  
+
+
+
+
+  /*********************End view************************/
+  
+  
+
+  /**********************Start Controller***************/
+
+class EmployeeController < ApplicationController
+  layout "tutors"
+  before_action :authenticate_tutor
+  before_action :check_profile_status
+  skip_before_action :verify_authenticity_token
+
+  def index
+    @slug = 'tutor'
+    @countries = CountryId.all
+    @states = StateId.all
+    @cities = CityId.all
+    @sub_slug = 'tutor_dashbaord' 
+  end
+  
+  def save_employee_details
+    Employee.create(emlpoyee_params)
+    render json: { 'msg' => 'Record has been saved successfully' }
+  end
+
+  def edit
+    @employees = Employee.includes(:country, :state, :city).order('id desc')
+    data = 
+      @employees.map do |emp|
+        {
+          name: emp.name,
+          country: emp.country.name,
+          state: emp.state.name,
+          city: emp.city.name
+        }
+      end
+
+      print data
+    render json: { 'data' => data }
+  end
+
+  def update
+    @emp = Employee.find(params[:id])
+    if @emp.update(emlpoyee_params)
+       render json: { 'msg' => 'Record has been saved successfully' }
+     else
+      render json: { 'msg' => 'some errror' }
+    end
+  end
+  
+  def get_employee_list
+    # @employees = Employee.order('id desc')
+    @employees = Employee.includes(:country, :state, :city).order('id desc')
+    data = 
+      @employees.map do |emp|
+        {
+          name: emp.name,
+          country: emp.country.name,
+          state: emp.state.name,
+          city: emp.city.name
+        }
+      end
+
+      print data
+    render json: { 'any' => data }
+  end
+
+  def destroy
+    @emp = Employee.find(params[:id])
+    @emp.destroy
+    render json: { 'msg' => 'Your Record has been deleted!' }
+  end
+
+  def add_new_employee
+  end
+
+  def find_state
+    @states = StateId.where(Country_Id: params[:country_id])
+    render json: { 'data' => @states }
+  end
+
+  def find_city
+    @city = CityId.where(State_Id: params[:state_id])
+    render json: { 'data' => @city }
+  end
+
+  
+  private
+  
+  def emlpoyee_params
+    params.require(:employee).permit(:name, :Country_id, :State_id, :City_id)
+  end
+
+end
+  /**********************End controller**********************/
+
+
+
+
+ /************************Start JS***************************/
+
+$(document).ready(function(){
+ $('#get_employee_list').click(function(){
+    $.ajax({
+      type: 'GET',
+      url: '/get_employee_list',
+      data: {},
+      success: function(res) {
+        var list = res.any;
+        if(list.length > 0){
+          var content = '';
+          for(var i=0; i<list.length; i++){
+            content += '<tr>';
+            content += '<td>'+(i+1)+'</td>';
+            content += '<td>'+list[i].name+'</td>';
+            content += '<td>'+list[i].country+'</td>';
+            content += '<td>'+list[i].state+'</td>';
+            content += '<td>'+list[i].city+'</td>';
+            content += '<td><button type="button" class="btn btn-success>Edit</button> | <button type="button" class="btn btn-primary" >Delete</button></td>'; 
+            content += '</tr>'; 
+          }
+          $('#emp_table').html(content);
+        }  
+      },
+      error: function(res) {}
+    });
+  });
+
+
+
+
+  $(document).ready(function(){
+    $('#country_Id').on('change',function(){
+      var countryId = $(this).val();
+      
+      $.ajax({
+          url: "/state_Id",
+          type: "GET",
+          data: { country_id: countryId },
+          dataType: "json",
+          success: function(res){
+            var states = res.data;
+            if(states.length > 0){
+              var content = '<option>Select</option>';
+              for(var i=0; i<states.length; i++){
+                content += '<option value='+ states[i].id +'>'+states[i].name+'</option>';
+              }
+
+              $('#state_Id').html(content);
+            }
+          },
+          error: function(res) {}
+        });
+      });
+  });
+
+    $('#state_Id').on('change', function(){
+        var stateId = $(this).val();
+         $.ajax({
+          url: "/city_Id",
+          type: "GET",
+          data: { state_id: stateId },
+          dataType: "json",
+          success: function(res){
+            var city = res.data;
+            if(city.length > 0){
+              var content = '<option>Select</option>';
+              for(var i=0; i<city.length; i++){
+                content += '<option value='+ city[i].id +'>'+city[i].name+'</option>';
+              }
+              $('#city_Id').html(content);
+            }
+          },
+          error: function(res) {}
+        });
+      });
+  });
+
+
+  $('#save_employee_details').click(function(){
+    var empId = $("#emp_id").val();
+    var empName = $('#name').val();
+    var countryId = $('#country_Id').val();
+    var stateId = $('#state_Id').val();
+    var cityId = $('#city_Id').val();
+
+    var Url = '/save_employee_details';
+    if (empId != '') {
+      Url = '/update_employee';
+    }
+
+    $.ajax({
+           type: 'POST',
+           url: Url,
+           data: { employee: { name: empName, Country_id: countryId, State_id: stateId, City_id: cityId }, id: empId },
+           success: function(res) {
+              $('#name').val('');
+              $('#country_Id').val('');
+              $('#state_Id').val('');
+              $('#city_Id').val('');
+              $('#exampleModal').modal('hide');
+              alert(res.msg);
+              $('#get_employee_list').click()  
+           },
+           error: function(res) {
+           }
+    });
+  });
+
+
+$(document).on("click", '.edit_employee', function() {
+  var Record = this;
+  $.ajax({
+    type: 'GET',
+    url: '/edit_employee',
+    data: { id: Record.id },
+    success: function(res) {
+      $('#exampleModal').modal('show');
+      $('#emp_id').val(res.data.id);
+      $('#name').val(res.data.name);
+      $('#country_Id').val(res.data.country);
+      $('#state_Id').val(res.data.state);
+      $('#city_Id').val(res.data.city);
+      $('#get_employee_list').click()
+    },
+    error: function(res) {
+      alert("Error comes to record. id: " + res);
+    }
+  });
+});
+
+      $(document).on("click", '.delete_employee', function(event) {
+              var Record = this;
+          $.ajax({
+              type: 'GET',
+              url: '/delete_employee',
+              data: {id: Record.id},
+              success: function(res) {
+              alert(res.msg);
+              $(Record).closest("tr").remove();
+              },
+              error: function(res) {
+                alert("Error comes to record. id: " + res);
+              }
+          });
+       });
+
+
+  /***************************End JS*****************************/
+
