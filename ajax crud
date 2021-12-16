@@ -15,6 +15,158 @@ end
   /*********************End Route************************/
   
   
+   /************************Start Ajax***************************/
+
+$(document).ready(function(){
+ $('#get_employee_list').click(function(){
+    $.ajax({
+      type: 'GET',
+      url: '/get_employee_list',
+      data: {},
+      success: function(res) {
+        var list = res.any;
+        if(list.length > 0){
+          var content = '';
+          for(var i=0; i<list.length; i++){
+            content += '<tr>';
+            content += '<td>'+(i+1)+'</td>';
+            content += '<td>'+list[i].name+'</td>';
+            content += '<td>'+list[i].country+'</td>';
+            content += '<td>'+list[i].state+'</td>';
+            content += '<td>'+list[i].city+'</td>';
+            content += '<td><button type="button" class="btn btn-success>Edit</button> | <button type="button" class="btn btn-primary" >Delete</button></td>'; 
+            content += '</tr>'; 
+          }
+          $('#emp_table').html(content);
+        }  
+      },
+      error: function(res) {}
+    });
+  });
+
+
+
+
+  $(document).ready(function(){
+    $('#country_Id').on('change',function(){
+      var countryId = $(this).val();
+      
+      $.ajax({
+          url: "/state_Id",
+          type: "GET",
+          data: { country_id: countryId },
+          dataType: "json",
+          success: function(res){
+            var states = res.data;
+            if(states.length > 0){
+              var content = '<option>Select</option>';
+              for(var i=0; i<states.length; i++){
+                content += '<option value='+ states[i].id +'>'+states[i].name+'</option>';
+              }
+
+              $('#state_Id').html(content);
+            }
+          },
+          error: function(res) {}
+        });
+      });
+  });
+
+    $('#state_Id').on('change', function(){
+        var stateId = $(this).val();
+         $.ajax({
+          url: "/city_Id",
+          type: "GET",
+          data: { state_id: stateId },
+          dataType: "json",
+          success: function(res){
+            var city = res.data;
+            if(city.length > 0){
+              var content = '<option>Select</option>';
+              for(var i=0; i<city.length; i++){
+                content += '<option value='+ city[i].id +'>'+city[i].name+'</option>';
+              }
+              $('#city_Id').html(content);
+            }
+          },
+          error: function(res) {}
+        });
+      });
+  });
+
+
+  $('#save_employee_details').click(function(){
+    var empId = $("#emp_id").val();
+    var empName = $('#name').val();
+    var countryId = $('#country_Id').val();
+    var stateId = $('#state_Id').val();
+    var cityId = $('#city_Id').val();
+
+    var Url = '/save_employee_details';
+    if (empId != '') {
+      Url = '/update_employee';
+    }
+
+    $.ajax({
+           type: 'POST',
+           url: Url,
+           data: { employee: { name: empName, Country_id: countryId, State_id: stateId, City_id: cityId }, id: empId },
+           success: function(res) {
+              $('#name').val('');
+              $('#country_Id').val('');
+              $('#state_Id').val('');
+              $('#city_Id').val('');
+              $('#exampleModal').modal('hide');
+              alert(res.msg);
+              $('#get_employee_list').click()  
+           },
+           error: function(res) {
+           }
+    });
+  });
+
+
+$(document).on("click", '.edit_employee', function() {
+  var Record = this;
+  $.ajax({
+    type: 'GET',
+    url: '/edit_employee',
+    data: { id: Record.id },
+    success: function(res) {
+      $('#exampleModal').modal('show');
+      $('#emp_id').val(res.data.id);
+      $('#name').val(res.data.name);
+      $('#country_Id').val(res.data.country);
+      $('#state_Id').val(res.data.state);
+      $('#city_Id').val(res.data.city);
+      $('#get_employee_list').click()
+    },
+    error: function(res) {
+      alert("Error comes to record. id: " + res);
+    }
+  });
+});
+
+      $(document).on("click", '.delete_employee', function(event) {
+              var Record = this;
+          $.ajax({
+              type: 'GET',
+              url: '/delete_employee',
+              data: {id: Record.id},
+              success: function(res) {
+              alert(res.msg);
+              $(Record).closest("tr").remove();
+              },
+              error: function(res) {
+                alert("Error comes to record. id: " + res);
+              }
+          });
+       });
+
+
+  /***************************End Ajax*****************************/
+  
+  
   /*********************start view************************/
   <div class="content-wrapper">
     <section class="content-header">
@@ -220,154 +372,5 @@ end
 
 
 
- /************************Start JS***************************/
 
-$(document).ready(function(){
- $('#get_employee_list').click(function(){
-    $.ajax({
-      type: 'GET',
-      url: '/get_employee_list',
-      data: {},
-      success: function(res) {
-        var list = res.any;
-        if(list.length > 0){
-          var content = '';
-          for(var i=0; i<list.length; i++){
-            content += '<tr>';
-            content += '<td>'+(i+1)+'</td>';
-            content += '<td>'+list[i].name+'</td>';
-            content += '<td>'+list[i].country+'</td>';
-            content += '<td>'+list[i].state+'</td>';
-            content += '<td>'+list[i].city+'</td>';
-            content += '<td><button type="button" class="btn btn-success>Edit</button> | <button type="button" class="btn btn-primary" >Delete</button></td>'; 
-            content += '</tr>'; 
-          }
-          $('#emp_table').html(content);
-        }  
-      },
-      error: function(res) {}
-    });
-  });
-
-
-
-
-  $(document).ready(function(){
-    $('#country_Id').on('change',function(){
-      var countryId = $(this).val();
-      
-      $.ajax({
-          url: "/state_Id",
-          type: "GET",
-          data: { country_id: countryId },
-          dataType: "json",
-          success: function(res){
-            var states = res.data;
-            if(states.length > 0){
-              var content = '<option>Select</option>';
-              for(var i=0; i<states.length; i++){
-                content += '<option value='+ states[i].id +'>'+states[i].name+'</option>';
-              }
-
-              $('#state_Id').html(content);
-            }
-          },
-          error: function(res) {}
-        });
-      });
-  });
-
-    $('#state_Id').on('change', function(){
-        var stateId = $(this).val();
-         $.ajax({
-          url: "/city_Id",
-          type: "GET",
-          data: { state_id: stateId },
-          dataType: "json",
-          success: function(res){
-            var city = res.data;
-            if(city.length > 0){
-              var content = '<option>Select</option>';
-              for(var i=0; i<city.length; i++){
-                content += '<option value='+ city[i].id +'>'+city[i].name+'</option>';
-              }
-              $('#city_Id').html(content);
-            }
-          },
-          error: function(res) {}
-        });
-      });
-  });
-
-
-  $('#save_employee_details').click(function(){
-    var empId = $("#emp_id").val();
-    var empName = $('#name').val();
-    var countryId = $('#country_Id').val();
-    var stateId = $('#state_Id').val();
-    var cityId = $('#city_Id').val();
-
-    var Url = '/save_employee_details';
-    if (empId != '') {
-      Url = '/update_employee';
-    }
-
-    $.ajax({
-           type: 'POST',
-           url: Url,
-           data: { employee: { name: empName, Country_id: countryId, State_id: stateId, City_id: cityId }, id: empId },
-           success: function(res) {
-              $('#name').val('');
-              $('#country_Id').val('');
-              $('#state_Id').val('');
-              $('#city_Id').val('');
-              $('#exampleModal').modal('hide');
-              alert(res.msg);
-              $('#get_employee_list').click()  
-           },
-           error: function(res) {
-           }
-    });
-  });
-
-
-$(document).on("click", '.edit_employee', function() {
-  var Record = this;
-  $.ajax({
-    type: 'GET',
-    url: '/edit_employee',
-    data: { id: Record.id },
-    success: function(res) {
-      $('#exampleModal').modal('show');
-      $('#emp_id').val(res.data.id);
-      $('#name').val(res.data.name);
-      $('#country_Id').val(res.data.country);
-      $('#state_Id').val(res.data.state);
-      $('#city_Id').val(res.data.city);
-      $('#get_employee_list').click()
-    },
-    error: function(res) {
-      alert("Error comes to record. id: " + res);
-    }
-  });
-});
-
-      $(document).on("click", '.delete_employee', function(event) {
-              var Record = this;
-          $.ajax({
-              type: 'GET',
-              url: '/delete_employee',
-              data: {id: Record.id},
-              success: function(res) {
-              alert(res.msg);
-              $(Record).closest("tr").remove();
-              },
-              error: function(res) {
-                alert("Error comes to record. id: " + res);
-              }
-          });
-       });
-
-
-  /***************************End JS*****************************/
 
