@@ -15,3 +15,9 @@ sudo apt-get update
 sudo apt-get install dconf-editor
 ip a
 
+                   <----Bundle not working------>
+
+bundle install
+gem intall bundle 
+gem update --system
+bundle update --bundler
