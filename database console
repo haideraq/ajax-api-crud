@@ -1,0 +1,7 @@
+   ActiveRecord::Migration.drop_table(:user) for drop a table
+   ActiveRecord::Base.connection.tables for show tables in a database
+   
+   For console database (dropdown):
+   1. CityId.where(State_Id: 1).pluck(:name)
+   2. CityId.where(State_Id: 1).last(5).each {|e| e.update_columns(State_Id:)
+   3. } enter 
