@@ -1,0 +1,18 @@
+          <--Pending Topics -->
+Map
+Select/Detect Difference
+Puts/Print/P Difference
+Include/Join Difference
+n+1 egger loading
+bullet gem
+RObocop gem
+Rolify gem
+Nested Resources
+
+            <-- Associations -->
+has_many + belongs_to = one-to-many relationship
+has_one + belongs_to = one-to-one relationship
+has_many :through + belongs_to = many-to-many relationship
+has_one :through + belongs_to = one-to-one relationship
+has_and_belongs_to_many = many-to-many relationship
+
