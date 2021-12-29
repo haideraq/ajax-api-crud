@@ -1,0 +1,9 @@
+For Commit:  
+git config --global color.ui true
+git config --global user.name "YOUR NAME"
+git config --global user.email "YOUR@EMAIL.com
+then,
+4. git status (It shows red).
+5. git add . =>(space after that full stop).
+After that,
+6. git status (It show green).
