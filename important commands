@@ -1,4 +1,4 @@
-                       <---Database--->
+                            <---Database--->
 
    ActiveRecord::Migration.drop_table(:user) for drop a table
    ActiveRecord::Base.connection.tables for show tables in a database
@@ -8,14 +8,28 @@
    2. CityId.where(State_Id: 1).last(5).each {|e| e.update_columns(State_Id:)
    3. } enter 
    
+   
+                            <----db dump---->
 
-                       <---IP config--->
+
+commande to restore the the dump 
+pg_restore -h localhost -U postgres -d hoast_dev hoast_dev.sql
+pg_restore -h localhost -U postgres -d hoast_15nov my_hoastdb_15nov.dump
+or 
+psql hoast_dev < hoast_dev.dump
+psql -U username -d dbname < filename.sql  or filename.dump(file name with complete path)
+psql -U username -d hoast_15nov < my_hoastdb_15nov.dump
+
+
+
+
+                            <---IP config--->
 
 sudo apt-get update
 sudo apt-get install dconf-editor
 ip a
 
-                   <----Bundle not working------>
+                       <----Bundle not working------>
 
 bundle install
 gem intall bundle 
