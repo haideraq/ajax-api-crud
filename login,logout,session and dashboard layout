@@ -1,4 +1,5 @@
 /***************Start Route*****************/
+   #get "/index", to: "dashboard#index"
   root 'users#index'
   get '/dashboard' => 'dashboard#index'
   get '/logout' => 'dashboard#logout'
